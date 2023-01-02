@@ -1,24 +1,50 @@
 """
 Author          XYZscratcher github.com/xyzscratcher
-LastModified    2022/12/31
+LastModified    2023/1/2
 License         MIT
 URL             github.com/xyzscratcher/game
 """
+import os
+#import uuid
+import hashlib
+#import sys
+import json
+import typing
+
+def get_root_dirname():
+    return os.path.dirname(os.path.abspath(__file__))
+
 重开次数=0
 回答次数=0
 金币数量=0
+exit=False
+try:
+    with open(get_root_dirname()+'\game-data.json', 'r',encoding="utf-8") as f:
+        game_data = json.load(f)
+    with open(get_root_dirname()+"\game-data.txt","r") as t:
+        x=t.read()
+    if x==hashlib.md5(str(game_data).encode()).hexdigest(): # 检查 game-data.json 的 MD5 值与 game-data.txt 的数据是否相同，如果不同，程序停止运行。
+        重开次数=game_data["重开次数"]
+        金币数量=game_data["金币数量"]
+    else:
+        print("你修改了游戏数据，游戏自动停止运行！")
+        exit=True
+except:
+    pass
 # 游戏中的“台词”
 taici_1_1="""虽然你小心翼翼的用手挖着洞，可你发出的声音还是惊动了监狱看守。
-你被转到了厨房。
+你被看守押送到了厨房。
 你马上就会被魔王虎宫殿里的顶级厨师，
 用它精湛的厨艺，
 做成美味的炸鸡供魔王虎品尝。]]
 <Bad End>
 「嗯，炸鸡真香」
 """
-#hua=""
+taici_1_2=""""""
+taici_1_3=""""""
+
 # 游戏主要用到的输出函数，用“]]”分组。用“ENTER”键转到下一个组。
-def say(words):
+def say(words:str):
     words=words.split("]]")
     i=0
     #global hua
@@ -28,7 +54,7 @@ def say(words):
         #hua+="]]n"
         i+=1
 # 制作游戏中的问题。这些问题往往能改变游戏情节的走向。
-def 制作问题(op):
+def 制作问题(op:list)->int:
     global 回答次数
     for i in op:
         print("- "+i)
@@ -55,12 +81,24 @@ def die():
     input()
     global 重开次数
     重开次数+=1
+    game_data={"重开次数":重开次数,"金币数量":金币数量}
+    with open(get_root_dirname()+"\game-data.json","w",encoding="utf-8") as f:
+        json.dump(game_data,f,ensure_ascii=True)
+    with open(get_root_dirname()+"\game-data.txt","w") as t:
+        """
+        为了防止玩家篡改游戏数据，这里将游戏数据用 MD5 加密，保存至 game-data.txt。
+        每次打开游戏时，都会检查 game-data.json 的 MD5 值与 game-data.txt 的数据是否相同，如果不同，程序停止运行。
+        """
+        md5_data=hashlib.md5(str(game_data).encode(encoding="utf-8"))
+        md5_data_str=md5_data.hexdigest()
+        t.write(md5_data_str)
     main()
 def main():
-    taici_1=f"""【xx的越狱计划】
+    taici_0="""【xx的越狱计划】
 作者：XYZscratcher
 游戏时长：大约 10 分钟
-<按 ENTER 键继续>]]
+<按 ENTER 键开始>"""
+    taici_1=f"""
 重开次数：{重开次数}
 金币数：{金币数量}]]
 你是一只倒霉的鸡。
@@ -73,14 +111,17 @@ def main():
 终于，在一个月黑风高夜，你找到了机会。]]
 你要做什么？
 """
+    #print(get_root_dirname()+"\game-data.json")
+    say(taici_0)
     say(taici_1)
     回答1=制作问题(["在墙壁上挖个洞","在地板下挖个洞","用缩骨术钻出监狱"])
     if 回答1==1:
         say(taici_1_1)
         die()
     elif 回答1==2:
-        pass
+        say()
     else:
-        pass
-main()
+        say()
+if not exit:
+    main()
 #say(hua)
