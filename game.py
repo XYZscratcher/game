@@ -1,58 +1,73 @@
 """
 Author          XYZscratcher github.com/xyzscratcher
-LastModified    2023/1/2
+LastModified    2023/1/4
 License         MIT
 URL             github.com/xyzscratcher/game
+
+Windows10 系统 + Python3.10 亲测可运行
 """
 import os
-#import uuid
 import hashlib
-#import sys
 import json
-import typing
+import time
+import winsound
 
-def get_root_dirname():
+# 返回当前程序所在的目录
+def get_dirname()->str:
     return os.path.dirname(os.path.abspath(__file__))
 
 重开次数=0
 回答次数=0
 金币数量=0
+salt=b"9e24d797-7114-4596-9e44-0b6193df23cf"# MD5 加密时用到的“盐”
 exit=False
 try:
-    with open(get_root_dirname()+'\game-data.json', 'r',encoding="utf-8") as f:
+    with open(get_dirname()+'\game-data.json', 'r',encoding="utf-8") as f:
         game_data = json.load(f)
-    with open(get_root_dirname()+"\game-data.txt","r") as t:
+    with open(get_dirname()+"\game-data.txt","r") as t:
         x=t.read()
-    if x==hashlib.md5(str(game_data).encode()).hexdigest(): # 检查 game-data.json 的 MD5 值与 game-data.txt 的数据是否相同，如果不同，程序停止运行。
+    if x==hashlib.md5(str(game_data).encode()+salt).hexdigest(): # 检查 game-data.json 的 MD5 值与 game-data.txt 的数据是否相同，如果不同，程序停止运行。
         重开次数=game_data["重开次数"]
         金币数量=game_data["金币数量"]
     else:
         print("你修改了游戏数据，游戏自动停止运行！")
         exit=True
-except:
+except OSError:
     pass
 # 游戏中的“台词”
-taici_1_1="""虽然你小心翼翼的用手挖着洞，可你发出的声音还是惊动了监狱看守。
-你被看守押送到了厨房。
-你马上就会被魔王虎宫殿里的顶级厨师，
-用它精湛的厨艺，
-做成美味的炸鸡供魔王虎品尝。]]
-<Bad End>
-「嗯，炸鸡真香」
+taici_1_1="""
 """
-taici_1_2=""""""
+taici_1_2="""
+"""
 taici_1_3=""""""
 
-# 游戏主要用到的输出函数，用“]]”分组。用“ENTER”键转到下一个组。
-def say(words:str):
-    words=words.split("]]")
-    i=0
-    #global hua
-    while i<len(words):
-        #hua+=
-        input(words[i])
-        #hua+="]]n"
+# 逐字输出效果
+def _say(words:str):
+    i=1
+    while i<=len(words):
+        print('\r'+words[0:i],end="")
+        time.sleep(0.08)
         i+=1
+# 游戏主要用到的输出函数，用“]]”分组。用“ENTER”键转到下一个组。
+def say(words:str,start=False):
+    words=words.split("]]\n")
+    if not start:
+        for i in words:
+            x=i.split("\n")
+            for j in x:
+                _say(j)
+                print()# 换行
+                time.sleep(0.6)
+            print()
+    else:
+        for i in words:
+            x=i.split("\n")
+            for j in x:
+                _say(j)
+                print()# 换行
+                time.sleep(0.6)
+            input()
+            print('-'*15)
 # 制作游戏中的问题。这些问题往往能改变游戏情节的走向。
 def 制作问题(op:list)->int:
     global 回答次数
@@ -82,46 +97,47 @@ def die():
     global 重开次数
     重开次数+=1
     game_data={"重开次数":重开次数,"金币数量":金币数量}
-    with open(get_root_dirname()+"\game-data.json","w",encoding="utf-8") as f:
+    with open(get_dirname()+"\game-data.json","w",encoding="utf-8") as f:
         json.dump(game_data,f,ensure_ascii=True)
-    with open(get_root_dirname()+"\game-data.txt","w") as t:
+    with open(get_dirname()+"\game-data.txt","w") as t:
         """
         为了防止玩家篡改游戏数据，这里将游戏数据用 MD5 加密，保存至 game-data.txt。
         每次打开游戏时，都会检查 game-data.json 的 MD5 值与 game-data.txt 的数据是否相同，如果不同，程序停止运行。
         """
-        md5_data=hashlib.md5(str(game_data).encode(encoding="utf-8"))
+        md5_data=hashlib.md5(str(game_data).encode(encoding="utf-8")+salt)
         md5_data_str=md5_data.hexdigest()
         t.write(md5_data_str)
     main()
 def main():
-    taici_0="""【xx的越狱计划】
+    taici_0="""【】
 作者：XYZscratcher
 游戏时长：大约 10 分钟
 <按 ENTER 键开始>"""
-    taici_1=f"""
-重开次数：{重开次数}
-金币数：{金币数量}]]
-你是一只倒霉的鸡。
-因为好奇心，你闯进了魔法森林，被霸道的魔王虎关进了地下的秘密监狱。]]
-魔王虎不仅霸道，而且食量无敌，一天要吃10只动物。
-地下监狱就是它的食物仓库。
-你很清楚，在监狱里，必死无疑。
-你必须越狱。]]
-你下定决心，在监狱中坚持练功。
-终于，在一个月黑风高夜，你找到了机会。]]
-你要做什么？
+    taici_1=f"""随着人类技术水平的不断提高，
+人类社会的方方面面都有着突飞猛进的进步。]]
+但同时，我们的家园——地球也被严重污染：
+天空是灰色的，
+海洋是灰色的，
+河流也是灰色的；
+森林早已被人类全部砍伐，
+空气也变得有毒……
+地球——这位人类的母亲，正被她的子孙无情的伤害。]]
+2135 年
 """
     #print(get_root_dirname()+"\game-data.json")
-    say(taici_0)
+    os.system("color 87")
+    winsound.PlaySound(get_dirname()+r"\bgm.wav",winsound.SND_FILENAME+winsound.SND_ASYNC+winsound.SND_LOOP)
+    say(taici_0,start=True)
     say(taici_1)
-    回答1=制作问题(["在墙壁上挖个洞","在地板下挖个洞","用缩骨术钻出监狱"])
+    #回答1=制作问题(["","",""])
+    """
     if 回答1==1:
         say(taici_1_1)
         die()
     elif 回答1==2:
-        say()
+        say(taici_1_2)
     else:
         say()
+    """
 if not exit:
     main()
-#say(hua)
