@@ -1,6 +1,6 @@
 """
 Author          XYZscratcher github.com/xyzscratcher
-LastModified    2023/1/4
+LastModified    2023/1/5
 License         MIT
 URL             github.com/xyzscratcher/game
 
@@ -11,6 +11,7 @@ import hashlib
 import json
 import time
 import winsound
+import pdb
 
 # 返回当前程序所在的目录
 def get_dirname()->str:
@@ -42,14 +43,28 @@ taici_1_2="""
 taici_1_3=""""""
 
 # 逐字输出效果
-def _say(words:str):
+def _say(words:str,sec=0.06,is_start=False):
     i=1
+    x="</"
     while i<=len(words):
         print('\r'+words[0:i],end="")
-        time.sleep(0.08)
+        if words[i-1]!=" ":
+            time.sleep(sec)
         i+=1
+    if not is_start:
+        i=1
+        while i<=len(x):
+            print('\r'+words+x[0:i],end="")
+            time.sleep(sec)
+            i+=1
+        i=len(x)-1
+        while i>=0:
+            #pdb.set_trace()
+            print('\r'+words+x[0:i]+" "*(len(words)+len(x)),end='')
+            time.sleep(sec)
+            i-=1
 # 游戏主要用到的输出函数，用“]]”分组。用“ENTER”键转到下一个组。
-def say(words:str,start=False):
+def say(words:str,start=False,bg=False):
     words=words.split("]]\n")
     if not start:
         for i in words:
@@ -63,11 +78,18 @@ def say(words:str,start=False):
         for i in words:
             x=i.split("\n")
             for j in x:
-                _say(j)
+                if not bg:
+                    _say(j.center(190," "),sec=0.01,is_start=True)
+                else:
+                    _say(j.center(190," "),is_start=True)
                 print()# 换行
                 time.sleep(0.6)
-            input()
-            print('-'*15)
+            if not bg:
+                input()
+                os.system("cls")
+            else:
+                print()
+            #print('-'*25)
 # 制作游戏中的问题。这些问题往往能改变游戏情节的走向。
 def 制作问题(op:list)->int:
     global 回答次数
@@ -109,11 +131,10 @@ def die():
         t.write(md5_data_str)
     main()
 def main():
-    taici_0="""【】
-作者：XYZscratcher
-游戏时长：大约 10 分钟
+    taici_0=f"""蒲公英计划
+{"="*50}
 <按 ENTER 键开始>"""
-    taici_1=f"""随着人类技术水平的不断提高，
+    taici_bg=f"""随着人类技术水平的不断提高，
 人类社会的方方面面都有着突飞猛进的进步。]]
 但同时，我们的家园——地球也被严重污染：
 天空是灰色的，
@@ -122,13 +143,15 @@ def main():
 森林早已被人类全部砍伐，
 空气也变得有毒……
 地球——这位人类的母亲，正被她的子孙无情的伤害。]]
-2135 年
+2178 年，科学家预测，地球的生态系统将于二十年内完全崩溃。
+于是，联合国抛弃了地球，启动了代号为“蒲公英”的星际移民计划。]]
+“蒲公英”计划
 """
     #print(get_root_dirname()+"\game-data.json")
     os.system("color 87")
-    winsound.PlaySound(get_dirname()+r"\bgm.wav",winsound.SND_FILENAME+winsound.SND_ASYNC+winsound.SND_LOOP)
-    say(taici_0,start=True)
-    say(taici_1)
+    winsound.PlaySound(get_dirname()+r"\bgm.wav",winsound.SND_FILENAME|winsound.SND_ASYNC|winsound.SND_LOOP)# 播放背景音乐
+    say(taici_bg,start=True,bg=True)
+    say(taici_0,True)
     #回答1=制作问题(["","",""])
     """
     if 回答1==1:
